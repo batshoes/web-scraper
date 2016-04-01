@@ -25,7 +25,6 @@ for i in 1..2 do
     end
   end
 end
-puts link_results
 
 link_results.each do |site|
   scraper.get(ADDRESS + "#{site[:href]}") do |data_search|
@@ -33,7 +32,7 @@ link_results.each do |site|
 
     total_assets = data_search.css('.intro')
     number = total_assets.text[/\$(.*?)[^\.]*/]
-    data_results << number
+    site[:value] = number
   end
 end
-puts data_results
+puts link_results
