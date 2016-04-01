@@ -15,31 +15,38 @@ for i in 1..2 do
     union_list = search.css('.cusview').css('.cuitem').css('.tdrates').css('span').css('a[href]')
     
     union_list.each do |l|
+      href = ADDRESS + l.attributes['href'].value
       results_hash = {
         name: l.text,
-        href: l.attributes['href'].value
+        href: href
       }
       
       results << results_hash
     end
   end
 end
-puts "Found names and href's"
 
 results.each do |site|
-  scraper.get(ADDRESS + "#{site[:href]}") do |data_search|
+  scraper.get("#{site[:href]}") do |data_search|
+    result_array = []
     
-
     info_paragraph = data_search.css('.intro')
     asset = info_paragraph.text[/\$(.*?)[^\.]*/]
-    email = info_paragraph.text #email regex
-    phone = info_paragraph.text #phone regex
     site[:assets] = asset
+
+    data_search.css('.infoTables').css('.row-detail')[0..27].each do |val|
+      result_array << val.text
+    end
+    
+    results_hash = Hash[*result_array]
+    results_hash.keys.each do |key|
+      site[key] = results_hash[key]
+    end
+
   end
 end
-puts "Added all numeric values"
 
-CSV.open("test.csv", "wb") do |csv|
+CSV.open("new.csv", "wb") do |csv|
   csv << results.first.keys # adds the attributes name on the first line
   results.each do |hash|
     csv << hash.values
