@@ -5,8 +5,7 @@ require 'csv'
 scraper = Mechanize.new
 scraper.history_added = Proc.new { sleep 0.5 }
 ADDRESS = "http://www.usacreditunions.com/"
-link_results = []
-data_results = []
+results = []
 
 
 for i in 1..2 do
@@ -21,18 +20,28 @@ for i in 1..2 do
         href: l.attributes['href'].value
       }
       
-      link_results << results_hash
+      results << results_hash
     end
   end
 end
+puts "Found names and href's"
 
-link_results.each do |site|
+results.each do |site|
   scraper.get(ADDRESS + "#{site[:href]}") do |data_search|
     
 
-    total_assets = data_search.css('.intro')
-    number = total_assets.text[/\$(.*?)[^\.]*/]
-    site[:value] = number
+    info_paragraph = data_search.css('.intro')
+    asset = info_paragraph.text[/\$(.*?)[^\.]*/]
+    email = info_paragraph.text #email regex
+    phone = info_paragraph.text #phone regex
+    site[:assets] = asset
   end
 end
-puts link_results
+puts "Added all numeric values"
+
+CSV.open("test.csv", "wb") do |csv|
+  csv << results.first.keys # adds the attributes name on the first line
+  results.each do |hash|
+    csv << hash.values
+  end
+end
